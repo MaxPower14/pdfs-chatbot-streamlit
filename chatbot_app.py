@@ -1,7 +1,9 @@
 import streamlit as st
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
+from langchain.embeddings import HuggingFaceInstructEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
+from langchain.vectorstores import FAISS
 
 def get_pdf_text(pdf_docs):
     text=""
@@ -21,6 +23,10 @@ def get_chunks(raw_text):
     chunks = text_splitter.split_text(raw_text)
     return chunks
 
+def get_vector_store(chunks):
+    embeddings = HuggingFaceInstructEmbeddings(model_name="BAAI/bge-base-en")
+    vectorstore = FAISS.from_texts(texts=chunks, embedding=embeddings)
+    return vectorstore
 
 
 def main():
@@ -42,6 +48,7 @@ def main():
                 text_chunks = get_chunks(raw_text)
 
                 #Create vector store
+                vectorestore = get_vector_store(text_chunks)
     
     #Create some space between the uploader and contact info
     with st.sidebar.container():
