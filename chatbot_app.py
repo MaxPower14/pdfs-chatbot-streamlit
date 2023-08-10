@@ -4,7 +4,14 @@ from PyPDF2 import PdfReader
 from langchain.embeddings import HuggingFaceInstructEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import FAISS
-from langchain.chat_models import ChatOpenAI
+from langchain.chat_models import JinaChat
+from langchain.prompts.chat import (
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    AIMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+)
+from langchain.schema import AIMessage, HumanMessage, SystemMessage
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain 
 from streamlit_chat import message
@@ -33,7 +40,7 @@ def get_vector_store(chunks):
     return vectorstore
 
 def conversation_chain(vectorestore):
-    llm = ChatOpenAI()
+    llm = JinaChat()
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
     conversation = ConversationalRetrievalChain.from_llm(
         llm=llm,
