@@ -4,6 +4,10 @@ from PyPDF2 import PdfReader
 from langchain.embeddings import HuggingFaceInstructEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import FAISS
+from langchain.chat_models import ChatOpenAI
+from langchain.memory import ConversationBufferMemory
+from langchain.chains import ConversationalRetrievalChain 
+from streamlit_chat import message
 
 def get_pdf_text(pdf_docs):
     text=""
@@ -28,10 +32,33 @@ def get_vector_store(chunks):
     vectorstore = FAISS.from_texts(texts=chunks, embedding=embeddings)
     return vectorstore
 
+def conversation_chain(vectorestore):
+    llm = ChatOpenAI()
+    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+    conversation = ConversationalRetrievalChain.from_llm(
+        llm=llm,
+        retriever=vectorestore.as_retriever(),
+        memory=memory
+    )
+    return conversation
+
+def handle_input(question):
+    response  = st.session_state.conversation({'question': question})
+    st.write(response)
+
+
+
 
 def main():
     load_dotenv()
     st.set_page_config(page_title="PDFs chatbot", page_icon='📕')
+
+    if "conversation" not in st.session_state:
+        st.session_state.conversation = None
+
+    question = st.text_input("Ask a question about your files")
+    if question:
+        handle_input(question)
 
     #Sidebar
     #Title and documents uploader
@@ -49,7 +76,13 @@ def main():
 
                 #Create vector store
                 vectorestore = get_vector_store(text_chunks)
+
+                #Create conversation chain
+                st.session_state.conversation = conversation_chain(vectorestore)
     
+
+
+
     #Create some space between the uploader and contact info
     with st.sidebar.container():
         st.text("")
