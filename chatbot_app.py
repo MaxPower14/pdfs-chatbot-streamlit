@@ -14,7 +14,6 @@ from langchain.prompts.chat import (
 from langchain.schema import AIMessage, HumanMessage, SystemMessage
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain 
-from streamlit_chat import message
 
 def get_pdf_text(pdf_docs):
     text=""
@@ -51,8 +50,14 @@ def conversation_chain(vectorestore):
 
 def handle_input(question):
     response  = st.session_state.conversation({'question': question})
-    st.write(response)
-
+    st.session_state.chat_history = response['chat_history']
+    for i, message in enumerate(st.session_state.chat_history):
+        if i % 2 == 0:
+            with st.chat_message("user"):
+                st.write(message.content)
+        else:
+            with st.chat_message("assistant"):
+                st.write(message.content)
 
 
 
@@ -60,13 +65,16 @@ def main():
     load_dotenv()
     st.set_page_config(page_title="PDFs chatbot", page_icon='📕')
 
+    # When using session_state, variables must be declared before using
     if "conversation" not in st.session_state:
         st.session_state.conversation = None
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = None
 
-    question = st.text_input("Ask a question about your files")
+    question = st.chat_input("Ask a question about your files")
     if question:
         handle_input(question)
-
+  
     #Sidebar
     #Title and documents uploader
     with st.sidebar:
@@ -100,7 +108,7 @@ def main():
         st.subheader(
             "A Streamlit web app by [Hiram Cortes](https://www.linkedin.com/in/hdcortesd/)"
             )
-        st.markdown("You can find the source code on my [GitHub](https://github.com/MaxPower14)")
+        st.markdown("You can find the source code on my [GitHub](https://github.com/MaxPower14/pdfs-chatbot-streamlit)")
 
 
 if __name__ == '__main__':
