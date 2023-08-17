@@ -1,7 +1,7 @@
 import streamlit as st
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
-from langchain.embeddings import HuggingFaceInstructEmbeddings
+from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.chat_models import JinaChat
@@ -34,7 +34,8 @@ def get_chunks(raw_text):
     return chunks
 
 def get_vector_store(chunks):
-    embeddings = HuggingFaceInstructEmbeddings(model_name="BAAI/bge-base-en")
+
+    embeddings = HuggingFaceEmbeddings(model_name="intfloat/e5-small-v2")
     vectorstore = FAISS.from_texts(texts=chunks, embedding=embeddings)
     return vectorstore
 
